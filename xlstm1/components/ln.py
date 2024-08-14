@@ -9,12 +9,12 @@ class LayerNorm(nn.Module):
     """LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False."""
 
     def __init__(
-        self,
-        ndim: int = -1,
-        weight: bool = True,
-        bias: bool = False,
-        eps: float = 1e-5,
-        residual_weight: bool = True,
+            self,
+            ndim: int = -1,
+            weight: bool = True,
+            bias: bool = False,
+            eps: float = 1e-5,
+            residual_weight: bool = True,
     ):
         super().__init__()
         self.weight = nn.Parameter(torch.zeros(ndim)) if weight else None

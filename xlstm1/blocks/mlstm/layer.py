@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import torch
 from torch import nn
 
+from .cell import mLSTMCell, mLSTMCellConfig
 from ...components.conv import CausalConv1d, CausalConv1dConfig
 from ...components.init import small_init_init_, wang_init_
 from ...components.linear_headwise import (
@@ -12,7 +13,6 @@ from ...components.linear_headwise import (
     LinearHeadwiseExpandConfig,
 )
 from ...utils import UpProjConfigMixin
-from .cell import mLSTMCell, mLSTMCellConfig
 
 
 @dataclass
@@ -125,10 +125,10 @@ class mLSTMLayer(nn.Module):
         return y
 
     def step(
-        self,
-        x: torch.Tensor,
-        mlstm_state: tuple[torch.Tensor, torch.Tensor, torch.Tensor] = None,
-        conv_state: tuple[torch.Tensor] = None,
+            self,
+            x: torch.Tensor,
+            mlstm_state: tuple[torch.Tensor, torch.Tensor, torch.Tensor] = None,
+            conv_state: tuple[torch.Tensor] = None,
     ) -> tuple[torch.Tensor, dict[str, tuple[torch.Tensor, ...]]]:
         B, S, _ = x.shape
 

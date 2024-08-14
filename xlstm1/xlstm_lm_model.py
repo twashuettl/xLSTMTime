@@ -54,7 +54,7 @@ class xLSTMLMModel(WeightDecayOptimGroupMixin, nn.Module):
         return logits
 
     def step(
-        self, idx: torch.Tensor, state: dict[str, dict[str, tuple[torch.Tensor, ...]]] = None, **kwargs
+            self, idx: torch.Tensor, state: dict[str, dict[str, tuple[torch.Tensor, ...]]] = None, **kwargs
     ) -> tuple[torch.Tensor, dict[str, dict[str, tuple[torch.Tensor, ...]]]]:
         x = self.token_embedding(idx)
         x = self.emb_dropout(x)

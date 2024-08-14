@@ -10,12 +10,11 @@ from torch import nn
 from .blocks.mlstm.block import mLSTMBlock, mLSTMBlockConfig
 from .blocks.slstm.block import sLSTMBlock, sLSTMBlockConfig
 from .components.ln import LayerNorm
-from .components.linear_headwise import LinearHeadwiseExpand
 
 
 @dataclass
 class xLSTMBlockStackConfig:
-    mlstm_block: Optional[mLSTMBlockConfig] =all
+    mlstm_block: Optional[mLSTMBlockConfig] = all
     slstm_block: Optional[sLSTMBlockConfig] = all
 
     context_length: int = -1
@@ -116,7 +115,7 @@ class xLSTMBlockStack(nn.Module):
             self.post_blocks_norm.reset_parameters()
 
     def forward(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
-        #print(x.shape)
+        # print(x.shape)
 
         for block in self.blocks:
             x = block(x, **kwargs)
@@ -126,7 +125,7 @@ class xLSTMBlockStack(nn.Module):
         return x
 
     def step(
-        self, x: torch.Tensor, state: dict[str, dict[str, tuple[torch.Tensor, ...]]] = None
+            self, x: torch.Tensor, state: dict[str, dict[str, tuple[torch.Tensor, ...]]] = None
     ) -> tuple[torch.Tensor, dict[str, dict[str, tuple[torch.Tensor, ...]]]]:
         if state is None:
             state = {}
@@ -137,22 +136,6 @@ class xLSTMBlockStack(nn.Module):
         x = self.post_blocks_norm(x)
 
         return x, state
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # # Copyright (c) NXAI GmbH and its affiliates 2024
 # # Maximilian Beck

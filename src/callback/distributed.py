@@ -1,15 +1,18 @@
-from .core import Callback
-import torch
-from torch.utils.data import DistributedSampler, DataLoader, SequentialSampler
-from torch.nn.parallel import DistributedDataParallel
-from typing import Optional, Dict, Any
 import logging
+from typing import Optional, Dict, Any
+
+import torch
+from torch.nn.parallel import DistributedDataParallel
+from torch.utils.data import DistributedSampler, DataLoader, SequentialSampler
+
+from .core import Callback
 
 logger = logging.getLogger(__name__)
 
 
 class DistributedTrainer(Callback):
     "Wrap `model` in `DistributedDataParallel` and `dls` in `DistributedDL`"
+
     def __init__(self,
                  local_rank,
                  world_size,
@@ -36,9 +39,8 @@ class DistributedTrainer(Callback):
     def _wrap_dl(self, dl):
         return dl if isinstance(dl, DistributedDL) else self.prepare_data_loader(dl)
 
-
-    def after_fit(self): 
-        self.learner.model = self.learner.model.module 
+    def after_fit(self):
+        self.learner.model = self.learner.model.module
         self.learner.dls.train = self.old_train_dl
         self.learner.dls.valid = self.old_valid_dl
 

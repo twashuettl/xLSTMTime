@@ -3,7 +3,6 @@
 from dataclasses import dataclass, field
 
 import torch
-
 # from einops import rearrange
 from torch import nn
 
@@ -21,10 +20,10 @@ class CausalConv1dConfig:
 
 
 def conv1d_step(
-    x: torch.Tensor,
-    conv_state: torch.Tensor,
-    conv1d_weight: torch.Tensor,
-    conv1d_bias: torch.Tensor = None,
+        x: torch.Tensor,
+        conv_state: torch.Tensor,
+        conv1d_weight: torch.Tensor,
+        conv1d_bias: torch.Tensor = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
     B: batch size
@@ -37,10 +36,10 @@ def conv1d_step(
         conv1d_weight (torch.Tensor): (KS, D)
     """
     assert (
-        x.shape[0] == conv_state.shape[0]
+            x.shape[0] == conv_state.shape[0]
     ), f"x has batch size {x.shape[0]} but conv_state has batch size {conv_state.shape[0]}"
     assert (
-        x.shape[2] == conv_state.shape[2]
+            x.shape[2] == conv_state.shape[2]
     ), f"x has feature dimension {x.shape[2]} but conv_state has feature dimension {conv_state.shape[2]}"
     assert x.shape[1] == 1, f"x has sequence length {x.shape[1]} but it should be 1"
     conv_state.copy_(torch.roll(conv_state, shifts=-1, dims=1))
@@ -77,7 +76,7 @@ class CausalConv1d(nn.Module):
             self.conv = None  # Noop
         else:
             self.pad = (
-                self.config.kernel_size - 1
+                    self.config.kernel_size - 1
             )  # padding of this size assures temporal causality.
             self.conv = nn.Conv1d(
                 in_channels=self.config.feature_dim,
@@ -95,7 +94,7 @@ class CausalConv1d(nn.Module):
         self.conv.reset_parameters()
 
     def _create_weight_decay_optim_groups(
-        self,
+            self,
     ) -> tuple[set[nn.Parameter], set[nn.Parameter]]:
         if self.config.kernel_size == 0:
             return (), ()
@@ -115,9 +114,9 @@ class CausalConv1d(nn.Module):
         return y[:, :, : -self.pad].transpose(2, 1)
 
     def step(
-        self,
-        x: torch.Tensor,
-        conv_state: tuple[torch.Tensor] = None,
+            self,
+            x: torch.Tensor,
+            conv_state: tuple[torch.Tensor] = None,
     ) -> tuple[torch.Tensor, tuple[torch.Tensor]]:
 
         if self.config.kernel_size == 0:

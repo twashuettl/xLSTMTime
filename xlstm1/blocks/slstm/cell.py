@@ -3,27 +3,22 @@
 import logging
 import os
 from dataclasses import dataclass, field
-from typing import Optional, Literal
+from math import sqrt
 from pathlib import Path
+from typing import Literal, Optional, Union, Sequence
 
 import torch
-
+import torch.nn as nn
 from torch.autograd.function import once_differentiable
+
 from .src.cuda_init import load
 from .src.vanilla import (
     slstm_forward,
     slstm_forward_step,
     slstm_pointwise_function_registry,
 )
-from ...components.util import conditional_decorator, round_to_multiple, ParameterProxy
 from ...components.init import bias_linspace_init_
-
-from dataclasses import dataclass, field
-from typing import Callable, Literal, Optional, Union, Sequence
-import logging
-import torch
-import torch.nn as nn
-from math import sqrt
+from ...components.util import conditional_decorator, ParameterProxy
 
 LOGGER = logging.getLogger(__name__)
 
@@ -163,7 +158,7 @@ class sLSTMCellConfig:
             self.dtype_g = self.dtype_r
 
         assert (
-            self.function in rnn_function_registry
+                self.function in rnn_function_registry
         ), f"RNN function {self.function} not in registry"
         self.num_states = rnn_function_registry[self.function]["states"]
         if "initial_val" in rnn_function_registry[self.function]:
@@ -172,42 +167,42 @@ class sLSTMCellConfig:
     @property
     def defines(self):
         return (
-            [
-                f"-DSLSTM_HIDDEN_SIZE={self.hidden_size}",
-                f"-DSLSTM_BATCH_SIZE={self.batch_size}",
-                f"-DSLSTM_NUM_HEADS={self.num_heads}",
-                f"-DSLSTM_NUM_STATES={self.num_states}",
-                f"-DSLSTM_DTYPE_B={_python_dtype_to_cuda_dtype[self.dtype_b]}",
-                f"-DSLSTM_DTYPE_R={_python_dtype_to_cuda_dtype[self.dtype_r]}",
-                f"-DSLSTM_DTYPE_W={_python_dtype_to_cuda_dtype[self.dtype_w]}",
-                f"-DSLSTM_DTYPE_G={_python_dtype_to_cuda_dtype[self.dtype_g]}",
-                f"-DSLSTM_DTYPE_S={_python_dtype_to_cuda_dtype[self.dtype_s]}",
-                f"-DSLSTM_DTYPE_A={_python_dtype_to_cuda_dtype[self.dtype_a]}",
-                f"-DSLSTM_NUM_GATES={4}",
-                f"-DSLSTM_SIMPLE_AGG={'true'}",
-            ]
-            + (
                 [
-                    f"-DSLSTM_GRADIENT_RECURRENT_CLIPVAL_VALID=true",
-                    f"-DSLSTM_GRADIENT_RECURRENT_CLIPVAL={self.gradient_recurrent_clipval}",
+                    f"-DSLSTM_HIDDEN_SIZE={self.hidden_size}",
+                    f"-DSLSTM_BATCH_SIZE={self.batch_size}",
+                    f"-DSLSTM_NUM_HEADS={self.num_heads}",
+                    f"-DSLSTM_NUM_STATES={self.num_states}",
+                    f"-DSLSTM_DTYPE_B={_python_dtype_to_cuda_dtype[self.dtype_b]}",
+                    f"-DSLSTM_DTYPE_R={_python_dtype_to_cuda_dtype[self.dtype_r]}",
+                    f"-DSLSTM_DTYPE_W={_python_dtype_to_cuda_dtype[self.dtype_w]}",
+                    f"-DSLSTM_DTYPE_G={_python_dtype_to_cuda_dtype[self.dtype_g]}",
+                    f"-DSLSTM_DTYPE_S={_python_dtype_to_cuda_dtype[self.dtype_s]}",
+                    f"-DSLSTM_DTYPE_A={_python_dtype_to_cuda_dtype[self.dtype_a]}",
+                    f"-DSLSTM_NUM_GATES={4}",
+                    f"-DSLSTM_SIMPLE_AGG={'true'}",
                 ]
-                if self.gradient_recurrent_clipval is not None
-                else [
-                    f"-DSLSTM_GRADIENT_RECURRENT_CLIPVAL_VALID=false",
-                    f"-DSLSTM_GRADIENT_RECURRENT_CLIPVAL=0.0",
-                ]
-            )
-            + (
-                [
-                    f"-DSLSTM_FORWARD_CLIPVAL_VALID=true",
-                    f"-DSLSTM_FORWARD_CLIPVAL={self.gradient_recurrent_clipval}",
-                ]
-                if self.gradient_recurrent_clipval is not None
-                else [
-                    f"-DSLSTM_FORWARD_CLIPVAL_VALID=false",
-                    f"-DSLSTM_FORWARD_CLIPVAL=0.0",
-                ]
-            )
+                + (
+                    [
+                        f"-DSLSTM_GRADIENT_RECURRENT_CLIPVAL_VALID=true",
+                        f"-DSLSTM_GRADIENT_RECURRENT_CLIPVAL={self.gradient_recurrent_clipval}",
+                    ]
+                    if self.gradient_recurrent_clipval is not None
+                    else [
+                        f"-DSLSTM_GRADIENT_RECURRENT_CLIPVAL_VALID=false",
+                        f"-DSLSTM_GRADIENT_RECURRENT_CLIPVAL=0.0",
+                    ]
+                )
+                + (
+                    [
+                        f"-DSLSTM_FORWARD_CLIPVAL_VALID=true",
+                        f"-DSLSTM_FORWARD_CLIPVAL={self.gradient_recurrent_clipval}",
+                    ]
+                    if self.gradient_recurrent_clipval is not None
+                    else [
+                        f"-DSLSTM_FORWARD_CLIPVAL_VALID=false",
+                        f"-DSLSTM_FORWARD_CLIPVAL=0.0",
+                    ]
+                )
         )
 
 
@@ -282,7 +277,7 @@ class sLSTMCellBase(nn.Module):
         return self._bias_
 
     def _recurrent_kernel_ext2int(
-        self, recurrent_kernel_ext: torch.Tensor
+            self, recurrent_kernel_ext: torch.Tensor
     ) -> torch.Tensor:
         return recurrent_kernel_ext
 
@@ -290,7 +285,7 @@ class sLSTMCellBase(nn.Module):
         return bias_ext
 
     def _recurrent_kernel_int2ext(
-        self, recurrent_kernel_int: torch.Tensor
+            self, recurrent_kernel_int: torch.Tensor
     ) -> torch.Tensor:
         return recurrent_kernel_int
 
@@ -405,13 +400,13 @@ class sLSTMCellBase(nn.Module):
                             else 0.0
                         )
                         init_values = -(
-                            -5.0
-                            + 12.0
-                            * (
-                                torch.arange(self.config.head_dim)
-                                / (self.config.head_dim - 1)
-                            )
-                            ** (0.3 + 1.3 * ratio_0_to_1)
+                                -5.0
+                                + 12.0
+                                * (
+                                        torch.arange(self.config.head_dim)
+                                        / (self.config.head_dim - 1)
+                                )
+                                ** (0.3 + 1.3 * ratio_0_to_1)
                         )
                         with torch.no_grad():
                             self.bias[h, i, :] = init_values
@@ -456,7 +451,7 @@ class sLSTMCellBase(nn.Module):
         return state
 
     def _get_state(
-        self, input: torch.Tensor, state: Optional[torch.Tensor] = None
+            self, input: torch.Tensor, state: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         if state is None:
             state = self._zero_state(input)
@@ -484,7 +479,7 @@ class sLSTMCellBase(nn.Module):
         return any(is_cuda)
 
     def step(
-        self, input: torch.Tensor, state: torch.Tensor
+            self, input: torch.Tensor, state: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
         self._check_input(input)
         input = self._permute_input(input)
@@ -524,10 +519,10 @@ class sLSTMCellCUDA(object):
                     str(curdir / "src" / "util" / "cuda_error.cu"),
                 ],
                 extra_cflags=[
-                    f"-D{const}={constval}"
-                    for const, constval in config.constants.items()
-                ]
-                + config.defines,
+                                 f"-D{const}={constval}"
+                                 for const, constval in config.constants.items()
+                             ]
+                             + config.defines,
             )
         return cls.mod[repr(config)]
 
@@ -597,7 +592,7 @@ class sLSTMCell_vanilla(sLSTMCellBase):
         self.config.internal_input_shape = "SBGNH"
 
     def _recurrent_kernel_ext2int(
-        self, recurrent_kernel_ext: torch.Tensor
+            self, recurrent_kernel_ext: torch.Tensor
     ) -> torch.Tensor:
         return (
             recurrent_kernel_ext.reshape(
@@ -615,7 +610,7 @@ class sLSTMCell_vanilla(sLSTMCellBase):
         )
 
     def _recurrent_kernel_int2ext(
-        self, recurrent_kernel_int: torch.Tensor
+            self, recurrent_kernel_int: torch.Tensor
     ) -> torch.Tensor:
         """
         >>> (); mod = sLSTMCell_vanilla(sLSTMCellConfig(hidden_size=64, num_heads=2), skip_backend_init=True); () # doctest:+ELLIPSIS
@@ -652,7 +647,7 @@ class sLSTMCell_vanilla(sLSTMCellBase):
         ).permute(1, 0, 2)
 
     def _impl(
-        self, training: bool, input: torch.Tensor, state: torch.Tensor
+            self, training: bool, input: torch.Tensor, state: torch.Tensor
     ) -> torch.Tensor:
         return slstm_forward(
             input,
@@ -664,7 +659,7 @@ class sLSTMCell_vanilla(sLSTMCellBase):
         )[0]
 
     def _impl_step(
-        self, training: bool, input: torch.Tensor, state: torch.Tensor
+            self, training: bool, input: torch.Tensor, state: torch.Tensor
     ) -> torch.Tensor:
         return slstm_forward_step(
             input,
@@ -690,7 +685,7 @@ class sLSTMCell_cuda(sLSTMCellBase):
             self.func = sLSTMCellFuncGenerator(self.training, config)
 
     def _recurrent_kernel_ext2int(
-        self, recurrent_kernel_ext: torch.Tensor
+            self, recurrent_kernel_ext: torch.Tensor
     ) -> torch.Tensor:
         return recurrent_kernel_ext.reshape(
             self.config.num_heads,
@@ -704,7 +699,7 @@ class sLSTMCell_cuda(sLSTMCellBase):
         )
 
     def _recurrent_kernel_int2ext(
-        self, recurrent_kernel_int: torch.tensor
+            self, recurrent_kernel_int: torch.tensor
     ) -> torch.Tensor:
         """
         >>> (); mod = sLSTMCell_cuda(
@@ -744,10 +739,10 @@ class sLSTMCell_cuda(sLSTMCellBase):
         )
 
     def _impl_step(
-        self,
-        training: bool,
-        input: torch.Tensor,
-        state: torch.Tensor,
+            self,
+            training: bool,
+            input: torch.Tensor,
+            state: torch.Tensor,
     ) -> torch.Tensor:
         return self.func.apply(
             training,
@@ -758,10 +753,10 @@ class sLSTMCell_cuda(sLSTMCellBase):
         )
 
     def _impl(
-        self,
-        training: bool,
-        input: torch.Tensor,
-        state: torch.Tensor,
+            self,
+            training: bool,
+            input: torch.Tensor,
+            state: torch.Tensor,
     ) -> torch.Tensor:
         return self.func.apply(
             training,

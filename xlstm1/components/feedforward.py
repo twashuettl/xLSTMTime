@@ -6,8 +6,8 @@ from typing import Callable, Literal
 import torch
 from torch import nn
 
-from ..utils import UpProjConfigMixin
 from .init import small_init_init_, wang_init_
+from ..utils import UpProjConfigMixin
 
 _act_fn_registry = {
     "gelu": nn.functional.gelu,

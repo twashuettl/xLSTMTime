@@ -2,17 +2,18 @@
 # Korbininan Pöppel
 from dataclasses import dataclass
 from typing import Optional
+
 import torch
-from ...components.ln import MultiHeadLayerNorm
+from torch import nn
+
+from .cell import sLSTMCell, sLSTMCellConfig
+from ...components.conv import CausalConv1d, CausalConv1dConfig
+from ...components.init import small_init_init_
 from ...components.linear_headwise import (
     LinearHeadwiseExpand,
     LinearHeadwiseExpandConfig,
 )
-from ...components.conv import CausalConv1d, CausalConv1dConfig
-from ...components.init import small_init_init_
-
-from torch import nn
-from .cell import sLSTMCell, sLSTMCellConfig
+from ...components.ln import MultiHeadLayerNorm
 
 
 @dataclass
@@ -90,11 +91,11 @@ class sLSTMLayer(nn.Module):
         small_init_init_(self.ogate.weight, dim=self.config.embedding_dim)
 
     def forward(
-        self,
-        x: torch.Tensor,
-        initial_state: Optional[torch.Tensor] = None,
-        return_last_state=False,
-        **kwargs,
+            self,
+            x: torch.Tensor,
+            initial_state: Optional[torch.Tensor] = None,
+            return_last_state=False,
+            **kwargs,
     ) -> torch.Tensor:
         B, S, _ = x.shape
 

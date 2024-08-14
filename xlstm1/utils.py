@@ -43,7 +43,7 @@ class WeightDecayOptimGroupMixin(nn.Module, ABC):
         # Each parameter can only be in one optim group.
         intersection_params = set(weight_decay).intersection(set(no_weight_decay))
         assert (
-            len(intersection_params) == 0
+                len(intersection_params) == 0
         ), f"parameters {[pn for pn, p in self.named_parameters() if p in intersection_params]} made it into both decay/no_decay sets!"
 
         union_params = set(weight_decay).union(set(no_weight_decay))
@@ -53,7 +53,7 @@ class WeightDecayOptimGroupMixin(nn.Module, ABC):
         # We have parameters that were not assigned to either weight decay or no weight decay.
         # Find the parameter names and raise an error.
         assert (
-            len(unassigned_params) == 0
+                len(unassigned_params) == 0
         ), f"Parameters {[pn for pn, p in self.named_parameters() if all([p is not q for q in unassigned_params])]} were not separated into either decay/no_decay set!"
 
         return weight_decay, no_weight_decay
@@ -95,7 +95,7 @@ class WeightDecayOptimGroupMixin(nn.Module, ABC):
         return tuple(decay), tuple(no_decay)
 
     def _get_weight_decay_optim_groups_for_modules(
-        self, modules: list["WeightDecayOptimGroupMixin"], **kwargs
+            self, modules: list["WeightDecayOptimGroupMixin"], **kwargs
     ) -> tuple[Sequence[nn.Parameter], Sequence[nn.Parameter]]:
         weight_decay, no_weight_decay = (), ()
         for module in modules:

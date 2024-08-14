@@ -1,10 +1,10 @@
-
-from torch import nn
 import collections
-from collections import OrderedDict
-import torch
 import os
+from collections import OrderedDict
 from datetime import timedelta
+
+import torch
+from torch import nn
 
 
 def init_ddp():
@@ -35,7 +35,7 @@ def nested_children(m: nn.Module):
                 output[name] = nested_children(child)
             except TypeError:
                 output[name] = nested_children(child)
-                
+
     return output
 
 
@@ -55,4 +55,3 @@ def unwrap_model(model):
     unwrapped_model = flatten_dict(unwrapped_model)
     unwrapped_model = nn.Sequential(OrderedDict(unwrapped_model))
     return unwrapped_model
-    

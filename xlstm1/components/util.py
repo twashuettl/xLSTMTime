@@ -1,7 +1,8 @@
 # Copyright (c) NXAI GmbH and its affiliates 2024
 # Korbininan Pöppel
-import torch
 from typing import Callable
+
+import torch
 
 
 def round_to_multiple(n, m=8):
@@ -32,11 +33,11 @@ class ParameterProxy:
     """
 
     def __init__(
-        self,
-        module,
-        parameter_name,
-        internal_to_external: Callable[[torch.Tensor], torch.Tensor],
-        external_to_internal: Callable[[torch.Tensor], torch.Tensor],
+            self,
+            module,
+            parameter_name,
+            internal_to_external: Callable[[torch.Tensor], torch.Tensor],
+            external_to_internal: Callable[[torch.Tensor], torch.Tensor],
     ):
         self.module = module
         self.parameter_name = parameter_name

@@ -5,9 +5,9 @@ from dataclasses import dataclass
 import torch
 from torch import nn
 
+from .backends import parallel_stabilized_simple, recurrent_step_stabilized_simple
 from ...components.init import bias_linspace_init_
 from ...components.ln import MultiHeadLayerNorm
-from .backends import parallel_stabilized_simple, recurrent_step_stabilized_simple
 
 
 @dataclass
@@ -73,12 +73,12 @@ class mLSTMCell(nn.Module):
         return h_state_norm
 
     def step(
-        self,
-        q: torch.Tensor,
-        k: torch.Tensor,
-        v: torch.Tensor,
-        mlstm_state: tuple[torch.Tensor, torch.Tensor, torch.Tensor] = None,
-        **kwargs,
+            self,
+            q: torch.Tensor,
+            k: torch.Tensor,
+            v: torch.Tensor,
+            mlstm_state: tuple[torch.Tensor, torch.Tensor, torch.Tensor] = None,
+            **kwargs,
     ) -> tuple[torch.Tensor, tuple[torch.Tensor, torch.Tensor, torch.Tensor]]:
         B, S, _ = q.shape  # (B, S, H)
         assert S == 1, f"mLSTMCell.step only supports sequence length S=1, but got S={S}."

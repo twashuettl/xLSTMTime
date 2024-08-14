@@ -6,15 +6,15 @@ import torch
 
 
 def parallel_stabilized_simple(
-    queries: torch.Tensor,
-    keys: torch.Tensor,
-    values: torch.Tensor,
-    igate_preact: torch.Tensor,
-    fgate_preact: torch.Tensor,
-    lower_triangular_matrix: torch.Tensor = None,
-    stabilize_rowwise: bool = True,
-    eps: float = 1e-6,
-    **kwargs,
+        queries: torch.Tensor,
+        keys: torch.Tensor,
+        values: torch.Tensor,
+        igate_preact: torch.Tensor,
+        fgate_preact: torch.Tensor,
+        lower_triangular_matrix: torch.Tensor = None,
+        stabilize_rowwise: bool = True,
+        eps: float = 1e-6,
+        **kwargs,
 ) -> torch.Tensor:
     """This is the mLSTM cell in parallel form.
     This version is stabilized. We control the range of exp() arguments by
@@ -90,16 +90,16 @@ def parallel_stabilized_simple(
 
 
 def recurrent_step_stabilized_simple(
-    c_state: torch.Tensor,
-    n_state: torch.Tensor,
-    m_state: torch.Tensor,
-    q: torch.Tensor,
-    k: torch.Tensor,
-    v: torch.Tensor,
-    igate_preact: torch.Tensor,
-    fgate_preact: torch.Tensor,
-    eps: float = 1e-6,
-    **kwargs,
+        c_state: torch.Tensor,
+        n_state: torch.Tensor,
+        m_state: torch.Tensor,
+        q: torch.Tensor,
+        k: torch.Tensor,
+        v: torch.Tensor,
+        igate_preact: torch.Tensor,
+        fgate_preact: torch.Tensor,
+        eps: float = 1e-6,
+        **kwargs,
 ) -> tuple[torch.Tensor, tuple[torch.Tensor, torch.Tensor]]:
     """This is a single step of the mLSTM operation in recurrent form.
 

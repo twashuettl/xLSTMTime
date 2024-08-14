@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 
+
 class RevIN(nn.Module):
     def __init__(self, num_features: int, eps=1e-5, affine=True):
         """
@@ -15,13 +16,14 @@ class RevIN(nn.Module):
         if self.affine:
             self._init_params()
 
-    def forward(self, x, mode:str):
+    def forward(self, x, mode: str):
         if mode == 'norm':
             self._get_statistics(x)
             x = self._normalize(x)
         elif mode == 'denorm':
             x = self._denormalize(x)
-        else: raise NotImplementedError
+        else:
+            raise NotImplementedError
         return x
 
     def _init_params(self):
@@ -30,9 +32,9 @@ class RevIN(nn.Module):
         self.affine_bias = nn.Parameter(torch.zeros(self.num_features))
 
     def _get_statistics(self, x):
-       # print('stdev 0',x.shape)
-        #x = x.permute(0, 2,1)# i add this 
-        dim2reduce = tuple(range(1, x.ndim-1))
+        # print('stdev 0',x.shape)
+        # x = x.permute(0, 2,1)# i add this
+        dim2reduce = tuple(range(1, x.ndim - 1))
         self.mean = torch.mean(x, dim=dim2reduce, keepdim=True).detach()
         self.stdev = torch.sqrt(torch.var(x, dim=dim2reduce, keepdim=True, unbiased=False) + self.eps).detach()
 
@@ -45,14 +47,14 @@ class RevIN(nn.Module):
         return x
 
     def _denormalize(self, x):
-        #print("x biggening ",x.shape)
+        # print("x biggening ",x.shape)
         if self.affine:
             x = x - self.affine_bias
-            x = x / (self.affine_weight + self.eps*self.eps)
-            #print("x shape:", x.shape)
-        #print("x content:", x)
+            x = x / (self.affine_weight + self.eps * self.eps)
+            # print("x shape:", x.shape)
+        # print("x content:", x)
 
-        #print("self.stdev shape:", self.stdev.shape, "self.stdev type:", self.stdev.dtype)
+        # print("self.stdev shape:", self.stdev.shape, "self.stdev type:", self.stdev.dtype)
         x = x * self.stdev
         x = x + self.mean
         return x

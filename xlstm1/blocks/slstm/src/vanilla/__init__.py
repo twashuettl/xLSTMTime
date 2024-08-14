@@ -2,11 +2,11 @@
 # Korbininan Pöppel
 
 from typing import Callable
+
 import torch
 
-from .slstm import slstm_forward_pointwise as slstm_forward_pointwise_slstm
 from .lstm import slstm_forward_pointwise as slstm_forward_pointwise_lstm
-
+from .slstm import slstm_forward_pointwise as slstm_forward_pointwise_slstm
 
 slstm_pointwise_function_registry: dict[str, Callable] = {
     "slstm": slstm_forward_pointwise_slstm,
@@ -15,20 +15,20 @@ slstm_pointwise_function_registry: dict[str, Callable] = {
 
 
 def slstm_forward(
-    x: torch.Tensor,  # [S, B, G*I]
-    states: torch.Tensor,  # [4, B, H] only the first is used for recurrence!
-    R: torch.Tensor,  # [K, R*H, H] - K num_heads
-    b: torch.Tensor,  # [T*H]
-    pointwise_forward: Callable[
-        tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict[str, float]],
-        tuple[torch.Tensor, torch.Tensor],
-    ],
-    constants: dict[str, float] = {},
+        x: torch.Tensor,  # [S, B, G*I]
+        states: torch.Tensor,  # [4, B, H] only the first is used for recurrence!
+        R: torch.Tensor,  # [K, R*H, H] - K num_heads
+        b: torch.Tensor,  # [T*H]
+        pointwise_forward: Callable[
+            tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict[str, float]],
+            tuple[torch.Tensor, torch.Tensor],
+        ],
+        constants: dict[str, float] = {},
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     num_states = states.shape[0]
     sequence_dim = x.shape[0]
     num_gates_r = (
-        R.shape[1] // R.shape[2]
+            R.shape[1] // R.shape[2]
     )  # this only works for a fully-connected RNN, for a hin change this
     hidden_dim = R.shape[2] * R.shape[0]
     num_gates_t = b.shape[0] // hidden_dim
@@ -75,20 +75,20 @@ def slstm_forward(
 
 
 def slstm_forward_step(
-    x: torch.Tensor,  # [B, G*I]
-    states: torch.Tensor,  # [4, B, H] only the first is used for recurrence!
-    R: torch.Tensor,  # [K, R*H, H] - K num_heads
-    b: torch.Tensor,  # [T*H]
-    pointwise_forward: Callable[
-        tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict[str, float]],
-        tuple[torch.Tensor, torch.Tensor],
-    ],
-    constants: dict[str, float] = {},
+        x: torch.Tensor,  # [B, G*I]
+        states: torch.Tensor,  # [4, B, H] only the first is used for recurrence!
+        R: torch.Tensor,  # [K, R*H, H] - K num_heads
+        b: torch.Tensor,  # [T*H]
+        pointwise_forward: Callable[
+            tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict[str, float]],
+            tuple[torch.Tensor, torch.Tensor],
+        ],
+        constants: dict[str, float] = {},
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     num_states = states.shape[0]
     sequence_dim = x.shape[0]
     num_gates_r = (
-        R.shape[1] // R.shape[2]
+            R.shape[1] // R.shape[2]
     )  # this only works for a fully-connected RNN, for a hin change this
     hidden_dim = R.shape[2] * R.shape[0]
     num_gates_t = b.shape[0] // hidden_dim

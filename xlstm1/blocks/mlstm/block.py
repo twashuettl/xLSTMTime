@@ -2,8 +2,8 @@
 # Maximilian Beck
 from dataclasses import dataclass, field
 
-from ..xlstm_block import xLSTMBlock, xLSTMBlockConfig
 from .layer import mLSTMLayerConfig
+from ..xlstm_block import xLSTMBlock, xLSTMBlockConfig
 
 
 @dataclass
@@ -15,7 +15,6 @@ class mLSTMBlockConfig:
 
 
 class mLSTMBlock(xLSTMBlock):
-
     config_class = mLSTMBlockConfig
 
     def __init__(self, config: mLSTMBlockConfig) -> None:

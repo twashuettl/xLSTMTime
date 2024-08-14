@@ -1,13 +1,9 @@
 import os
-import numpy as np
-import pandas as pd
-import os
-import torch
-from torch.utils.data import Dataset, DataLoader
-from sklearn.preprocessing import StandardScaler
+import warnings
+
+from torch.utils.data import Dataset
 
 from src.data.timefeatures import time_features
-import warnings
 
 warnings.filterwarnings('ignore')
 
@@ -94,8 +90,10 @@ class Dataset_ETT_hour(Dataset):
         seq_x_mark = self.data_stamp[s_begin:s_end]
         seq_y_mark = self.data_stamp[r_begin:r_end]
 
-        if self.use_time_features: return _torch(seq_x, seq_y, seq_x_mark, seq_y_mark)
-        else: return _torch(seq_x, seq_y)
+        if self.use_time_features:
+            return _torch(seq_x, seq_y, seq_x_mark, seq_y_mark)
+        else:
+            return _torch(seq_x, seq_y)
 
     def __len__(self):
         return len(self.data_x) - self.seq_len - self.pred_len + 1
@@ -188,8 +186,10 @@ class Dataset_ETT_minute(Dataset):
         seq_x_mark = self.data_stamp[s_begin:s_end]
         seq_y_mark = self.data_stamp[r_begin:r_end]
 
-        if self.use_time_features: return _torch(seq_x, seq_y, seq_x_mark, seq_y_mark)
-        else: return _torch(seq_x, seq_y)
+        if self.use_time_features:
+            return _torch(seq_x, seq_y, seq_x_mark, seq_y_mark)
+        else:
+            return _torch(seq_x, seq_y)
 
     def __len__(self):
         return len(self.data_x) - self.seq_len - self.pred_len + 1
@@ -202,7 +202,7 @@ class Dataset_Custom(Dataset):
     def __init__(self, root_path, split='train', size=None,
                  features='S', data_path='ETTh1.csv',
                  target='OT', scale=True, timeenc=0, freq='h',
-                 time_col_name='date', use_time_features=False, 
+                 time_col_name='date', use_time_features=False,
                  train_split=0.7, test_split=0.2
                  ):
         # size [seq_len, label_len, pred_len]
@@ -244,10 +244,10 @@ class Dataset_Custom(Dataset):
         df_raw.columns: [time_col_name, ...(other features), target feature]
         '''
         cols = list(df_raw.columns)
-        #cols.remove(self.target) if self.target
-        #cols.remove(self.time_col_name)
-        #df_raw = df_raw[[self.time_col_name] + cols + [self.target]]
-        
+        # cols.remove(self.target) if self.target
+        # cols.remove(self.time_col_name)
+        # df_raw = df_raw[[self.time_col_name] + cols + [self.target]]
+
         num_train = int(len(df_raw) * self.train_split)
         num_test = int(len(df_raw) * self.test_split)
         num_vali = len(df_raw) - num_train - num_test
@@ -296,15 +296,16 @@ class Dataset_Custom(Dataset):
         seq_x_mark = self.data_stamp[s_begin:s_end]
         seq_y_mark = self.data_stamp[r_begin:r_end]
 
-        if self.use_time_features: return _torch(seq_x, seq_y, seq_x_mark, seq_y_mark)
-        else: return _torch(seq_x, seq_y)
+        if self.use_time_features:
+            return _torch(seq_x, seq_y, seq_x_mark, seq_y_mark)
+        else:
+            return _torch(seq_x, seq_y)
 
     def __len__(self):
         return len(self.data_x) - self.seq_len - self.pred_len + 1
 
     def inverse_transform(self, data):
         return self.scaler.inverse_transform(data)
-    
 
 
 import torch
@@ -313,11 +314,12 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import Dataset
 
+
 class Dataset_PEMS(Dataset):
     def __init__(self, root_path, split='train', size=None,
                  features='S', data_path='ETTh1.csv',
                  target='OT', scale=True, timeenc=0, freq='h',
-                 time_col_name='date', use_time_features=False, 
+                 time_col_name='date', use_time_features=False,
                  train_split=0.6, test_split=0.2):
         if size is None:
             self.seq_len = 24 * 4 * 4
@@ -349,10 +351,10 @@ class Dataset_PEMS(Dataset):
     def __read_data__(self):
         self.scaler = StandardScaler()
         data_file = os.path.join(self.root_path, self.data_path)
-        
+
         data = np.load(data_file, allow_pickle=True)
         print(f"Data structure: {type(data)}, keys: {data.keys() if isinstance(data, np.lib.npyio.NpzFile) else 'N/A'}")
-        
+
         if isinstance(data, np.lib.npyio.NpzFile):
             if 'data' in data:
                 data = data['data']
@@ -360,7 +362,7 @@ class Dataset_PEMS(Dataset):
                 raise ValueError("The loaded npz file does not contain a 'data' key.")
         else:
             raise ValueError("The loaded file is not an npz file.")
-        
+
         if data.ndim == 3:
             data = data[:, :, 0]
         else:
@@ -395,9 +397,9 @@ class Dataset_PEMS(Dataset):
         seq_x_mark = torch.zeros((seq_x.shape[0], 1), dtype=torch.float32)  # Ensure the data type is float32
         seq_y_mark = torch.zeros((seq_y.shape[0], 1), dtype=torch.float32)  # Ensure the data type is float32
 
-        if self.use_time_features: 
+        if self.use_time_features:
             return seq_x, seq_y, seq_x_mark, seq_y_mark
-        else: 
+        else:
             return seq_x, seq_y
 
     def __len__(self):
@@ -406,11 +408,12 @@ class Dataset_PEMS(Dataset):
     def inverse_transform(self, data):
         return self.scaler.inverse_transform(data)
 
+
 class Dataset_Solar(Dataset):
     def __init__(self, root_path, split='train', size=None,
                  features='S', data_path='ETTh1.csv',
                  target='OT', scale=True, timeenc=0, freq='h',
-                 time_col_name='date', use_time_features=False, 
+                 time_col_name='date', use_time_features=False,
                  train_split=0.7, test_split=0.2):
         # size [seq_len, label_len, pred_len]
         if size is None:
@@ -483,8 +486,10 @@ class Dataset_Solar(Dataset):
         seq_x_mark = torch.zeros((seq_x.shape[0], 1))
         seq_y_mark = torch.zeros((seq_y.shape[0], 1))
 
-        if self.use_time_features: return seq_x, seq_y, seq_x_mark, seq_y_mark
-        else: return seq_x, seq_y
+        if self.use_time_features:
+            return seq_x, seq_y, seq_x_mark, seq_y_mark
+        else:
+            return seq_x, seq_y
 
     def __len__(self):
         return len(self.data_x) - self.seq_len - self.pred_len + 1

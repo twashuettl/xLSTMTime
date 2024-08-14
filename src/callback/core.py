@@ -1,4 +1,3 @@
-
 # __all__ = ['Callback', 'SetupLearnerCB', 'GetPredictionsCB', 'GetTestCB' ]
 
 
@@ -48,7 +47,7 @@
 #         if self.n_inp > 1: xb, yb = batch
 #         else: xb, yb = batch, None        
 #         self.learner.batch = xb, yb
-        
+
 #     def before_fit(self): 
 #         "Set model to cuda before training"                
 #         self.learner.model.to(self.device)
@@ -61,7 +60,7 @@
 
 #     def before_predict(self):
 #         self.preds = []        
-    
+
 #     def after_batch_predict(self):        
 #         # append the prediction after each forward batch           
 #         self.preds.append(self.pred)
@@ -69,7 +68,6 @@
 #     def after_predict(self):           
 #         self.preds = torch.concat(self.preds)#.detach().cpu().numpy()
 
-         
 
 # class GetTestCB(Callback):
 #     def __init__(self):
@@ -77,7 +75,7 @@
 
 #     def before_test(self):
 #         self.preds, self.targets = [], []        
-    
+
 #     def after_batch_test(self):        
 #         # append the prediction after each forward batch           
 #         self.preds.append(self.pred)
@@ -86,25 +84,6 @@
 #     def after_test(self):           
 #         self.preds = torch.concat(self.preds)#.detach().cpu().numpy()
 #         self.targets = torch.concat(self.targets)#.detach().cpu().numpy()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 __all__ = ['Callback', 'SetupLearnerCB', 'GetPredictionsCB', 'GetTestCB']
@@ -131,23 +110,32 @@ Callback lists:
     - after_predict
 """
 
-from ..basics import *
 import torch
+
+from ..basics import *
 
 DTYPE = torch.float32
 
-class Callback(GetAttr): 
-    _default='learner'
+
+class Callback(GetAttr):
+    _default = 'learner'
 
 
-class SetupLearnerCB(Callback): 
-    def __init__(self):        
+class SetupLearnerCB(Callback):
+    def __init__(self):
         self.device = default_device(use_cuda=True)
 
-    def before_batch_train(self): self._to_device()
-    def before_batch_valid(self): self._to_device()
-    def before_batch_predict(self): self._to_device()
-    def before_batch_test(self): self._to_device()
+    def before_batch_train(self):
+        self._to_device()
+
+    def before_batch_valid(self):
+        self._to_device()
+
+    def before_batch_predict(self):
+        self._to_device()
+
+    def before_batch_test(self):
+        self._to_device()
 
     # def _to_device(self):
     #     batch = to_device(self.batch, self.device)
@@ -163,7 +151,7 @@ class SetupLearnerCB(Callback):
     #     self.learner.batch = xb, yb
     def _to_device(self):
         batch = to_device(self.batch, self.device)
-        #print(f"Batch content before unpacking: {batch}")  # Debug statement
+        # print(f"Batch content before unpacking: {batch}")  # Debug statement
         try:
             if self.n_inp > 1:
                 xb = batch[0]
@@ -171,16 +159,14 @@ class SetupLearnerCB(Callback):
             else:
                 xb, yb = batch, None
         except ValueError as e:
-            #print(f"Error unpacking batch: {e}")
+            # print(f"Error unpacking batch: {e}")
             raise e
         self.learner.batch = xb, yb
 
-
-        
-    def before_fit(self): 
-        "Set model to cuda before training"                
+    def before_fit(self):
+        "Set model to cuda before training"
         self.learner.model.to(self.device)
-        self.learner.device = self.device                        
+        self.learner.device = self.device
 
 
 class GetPredictionsCB(Callback):
@@ -188,29 +174,28 @@ class GetPredictionsCB(Callback):
         super().__init__()
 
     def before_predict(self):
-        self.preds = []        
-    
-    def after_batch_predict(self):        
+        self.preds = []
+
+    def after_batch_predict(self):
         # append the prediction after each forward batch           
         self.preds.append(self.pred)
 
-    def after_predict(self):           
-        self.preds = torch.concat(self.preds)#.detach().cpu().numpy()
+    def after_predict(self):
+        self.preds = torch.concat(self.preds)  # .detach().cpu().numpy()
 
-         
 
 class GetTestCB(Callback):
     def __init__(self):
         super().__init__()
 
     def before_test(self):
-        self.preds, self.targets = [], []        
-    
-    def after_batch_test(self):        
+        self.preds, self.targets = [], []
+
+    def after_batch_test(self):
         # append the prediction after each forward batch           
         self.preds.append(self.pred)
         self.targets.append(self.yb)
 
-    def after_test(self):           
-        self.preds = torch.concat(self.preds)#.detach().cpu().numpy()
-        self.targets = torch.concat(self.targets)#.detach().cpu().numpy()
+    def after_test(self):
+        self.preds = torch.concat(self.preds)  # .detach().cpu().numpy()
+        self.targets = torch.concat(self.targets)  # .detach().cpu().numpy()

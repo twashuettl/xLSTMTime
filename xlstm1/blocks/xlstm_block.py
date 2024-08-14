@@ -6,10 +6,10 @@ from typing import Optional
 import torch
 from torch import nn
 
-from ..components.feedforward import FeedForwardConfig, create_feedforward
-from ..components.ln import LayerNorm
 from .mlstm.layer import mLSTMLayer, mLSTMLayerConfig
 from .slstm.layer import sLSTMLayer, sLSTMLayerConfig
+from ..components.feedforward import FeedForwardConfig, create_feedforward
+from ..components.ln import LayerNorm
 
 """An xLSTM block can be either an sLSTM Block or an mLSTM Block.
 
@@ -44,7 +44,6 @@ class xLSTMBlockConfig:
 
 
 class xLSTMBlock(nn.Module):
-
     config_class = xLSTMBlockConfig
 
     def __init__(self, config: xLSTMBlockConfig) -> None:

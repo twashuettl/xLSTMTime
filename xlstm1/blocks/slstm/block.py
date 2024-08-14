@@ -4,9 +4,9 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from ...components.feedforward import FeedForwardConfig
-from ..xlstm_block import xLSTMBlock, xLSTMBlockConfig
 from .layer import sLSTMLayerConfig
+from ..xlstm_block import xLSTMBlock, xLSTMBlockConfig
+from ...components.feedforward import FeedForwardConfig
 
 
 @dataclass

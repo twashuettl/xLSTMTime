@@ -1,10 +1,9 @@
 # Copyright (c) NXAI GmbH and its affiliates 2024
 # Maximilian Beck, Korbininan Pöppel
 from dataclasses import dataclass
-
 from math import sqrt
-import torch
 
+import torch
 # from einops import einsum, rearrange
 from torch import nn
 
@@ -32,7 +31,7 @@ class LinearHeadwiseExpandConfig:
         assert self.num_heads > 0, "num_heads must be set"
         assert self.num_heads <= self.in_features, "num_heads must be <= in_features"
         assert (
-            self.in_features % self.num_heads == 0
+                self.in_features % self.num_heads == 0
         ), "in_features must be a multiple of num_heads"
 
         if self._out_features < 0:
