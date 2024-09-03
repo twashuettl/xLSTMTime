@@ -108,7 +108,7 @@ def get_dls(params):
             workers=params.num_workers,
         )
     elif params.dset == 'ettm2':
-        root_path = '/home/musleh/Downloads/Autoformer-20240316T112457Z-001/Autoformer/'
+        root_path = 'data/ETT-small'
         size = [params.context_points, 0, params.target_points]
         dls = DataLoaders(
             datasetCls=Dataset_ETT_minute,
@@ -125,7 +125,7 @@ def get_dls(params):
         )
 
     elif params.dset == 'etth1':
-        root_path = '/home/musleh/Downloads/Autoformer-20240316T112457Z-001/Autoformer/'
+        root_path = 'data/ETT-small'
         size = [params.context_points, 0, params.target_points]
         dls = DataLoaders(
             datasetCls=Dataset_ETT_hour,
@@ -143,7 +143,7 @@ def get_dls(params):
 
 
     elif params.dset == 'etth2':
-        root_path = '/home/musleh/Downloads/Autoformer-20240316T112457Z-001/Autoformer/'
+        root_path = 'data/ETT-small'
         size = [params.context_points, 0, params.target_points]
         dls = DataLoaders(
             datasetCls=Dataset_ETT_hour,

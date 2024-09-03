@@ -5,7 +5,6 @@ import os
 from datautils import get_dls
 from src.callback.tracking import *
 from src.callback.transforms import *
-# import torchcd
 from src.learner import Learner
 from src.metrics import *
 from xlstm import xlstm
@@ -90,8 +89,7 @@ def get_model(c_in, args):
     print('number of patches:', num_patch)
 
     ## get model
-    model = xlstm(configs, enc_in=c_in,
-                  )
+    model = xlstm(configs, enc_in=c_in)
     return model
 
 

@@ -14,6 +14,7 @@ config = xLSTMBlockStackConfig(
     num_blocks=3,
     embedding_dim=256,
     add_post_blocks_norm=True,
+    # dropout=0.3,
 
     _block_map=1,
 
@@ -96,7 +97,7 @@ class xlstm(torch.nn.Module):
         x = self.mm(x)
         # print(x.shape)
 
-        # x = self.batch_norm(x)
+        x = self.batch_norm(x)
 
         x = self.xlstm_stack(x)
 
