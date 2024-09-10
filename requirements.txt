@@ -27,3 +27,4 @@ pykeops
 torchtext
 tensorboard
 cryptography
+polars

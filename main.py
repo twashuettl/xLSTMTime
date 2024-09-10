@@ -24,7 +24,7 @@ parser.add_argument('--residual', type=int, default=1, help='Residual Connection
 
 parser.add_argument('--model_name2', type=str, default='xLSTMTime', help='model_name2')
 # IntegratedModel   model1 model2 dlinear
-parser.add_argument('--dset', type=str, default='ettm1', help='dataset name')
+parser.add_argument('--dset', type=str, default='etth1', help='dataset name')
 parser.add_argument('--context_points', type=int, default=512, help='sequence length')
 parser.add_argument('--target_points', type=int, default=96, help='forecast horizon')
 parser.add_argument('--batch_size', type=int, default=64, help='batch size')
@@ -32,7 +32,7 @@ parser.add_argument('--num_workers', type=int, default=1, help='number of worker
 parser.add_argument('--scaler', type=str, default='standard', help='scale the input data')
 
 parser.add_argument('--features', type=str, default='M', help='for multivariate model or univariate model')
-parser.add_argument('--use_time_features', type=int, default=1, help='whether to use time features or not')
+parser.add_argument('--use_time_features', type=int, default=0, help='whether to use time features or not')
 # Patch
 parser.add_argument('--patch_len', type=int, default=12, help='patch length')
 parser.add_argument('--stride', type=int, default=12, help='stride between patch')
@@ -53,7 +53,8 @@ parser.add_argument('--model_id', type=int, default=1, help='id of the saved mod
 parser.add_argument('--model_type', type=str, default='based_model', help='for multivariate model or univariate model')
 # training
 parser.add_argument('--is_train', type=int, default=1, help='training the model')
-
+# debugging
+parser.add_argument('--is_debug', type=int, default=0, help='debugging')
 # parser = argparse.ArgumentParser(description='Swin Transformer training and evaluation script', add_help=False)
 
 # parser.add_argument('Swin Transformer training and evaluation script', add_help=False)
@@ -210,7 +211,17 @@ def plot_feature_actual_vs_predicted(actual, predicted, feature_idx):
     plt.show()
 
 
-if __name__ == '__main__':
+def main():
+    if args.is_debug:
+        dls = get_dls(args)
+        model = get_model(dls.vars, args).to("cuda")
+        with torch.no_grad():
+            xb, yb, _, _ = next(iter(dls.train))
+            xb = xb.cuda()
+            out = model.forward(xb)
+            print(out)
+            print(yb)
+        return
 
     if args.is_train:
 
@@ -228,3 +239,6 @@ if __name__ == '__main__':
             plot_feature_actual_vs_predicted(out[1], out[0], feature_idx)
 
     print('----------- Complete! -----------')
+
+if __name__ == '__main__':
+    main()

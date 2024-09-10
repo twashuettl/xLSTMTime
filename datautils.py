@@ -244,6 +244,25 @@ def get_dls(params):
             batch_size=params.batch_size,
             workers=params.num_workers,
         )
+
+    elif params.dset == 'nixtla':
+        root_path = 'data/scenarios/'
+        dls = DataLoaders(
+            datasetCls=Dataset_ETT_hour,
+            dataset_kwargs={
+                'root_path': root_path,
+                'data_path': 'teufelberger_material_m_12.parquet',
+                'features': params.features,
+                'scale': True,
+                'input_size': params.context_points,
+                'horizon': params.target_points,
+                'val_size': 12,
+                'use_time_features': params.use_time_features
+            },
+            batch_size=params.batch_size,
+            workers=params.num_workers,
+        )
+
     # dataset is assume to have dimension len x nvars
     dls.vars, dls.len = dls.train.dataset[0][0].shape[1], params.context_points
     dls.c = dls.train.dataset[0][1].shape[0]

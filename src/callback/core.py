@@ -137,18 +137,6 @@ class SetupLearnerCB(Callback):
     def before_batch_test(self):
         self._to_device()
 
-    # def _to_device(self):
-    #     batch = to_device(self.batch, self.device)
-    #     print(f"Batch content before unpacking: {batch}")  # Debug statement
-    #     try:
-    #         if self.n_inp > 1:
-    #             xb, yb = batch
-    #         else:
-    #             xb, yb = batch, None
-    #     except ValueError as e:
-    #         print(f"Error unpacking batch: {e}")
-    #         raise e
-    #     self.learner.batch = xb, yb
     def _to_device(self):
         batch = to_device(self.batch, self.device)
         # print(f"Batch content before unpacking: {batch}")  # Debug statement
