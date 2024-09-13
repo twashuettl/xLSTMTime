@@ -2,7 +2,7 @@ from src.data.datamodule import DataLoaders
 from src.data.pred_dataset import *
 
 DSETS = ['ettm1', 'Solar', 'PEMS03', 'PEMS04', 'PEMS07', 'PEMS08', 'ettm2', 'etth1', 'etth2', 'electricity',
-         'traffic', 'illness', 'weather', 'exchange'
+         'traffic', 'illness', 'weather', 'exchange', "nixtla"
          ]
 
 
@@ -248,7 +248,7 @@ def get_dls(params):
     elif params.dset == 'nixtla':
         root_path = 'data/scenarios/'
         dls = DataLoaders(
-            datasetCls=Dataset_ETT_hour,
+            datasetCls=Dataset_Nixtla,
             dataset_kwargs={
                 'root_path': root_path,
                 'data_path': 'teufelberger_material_m_12.parquet',

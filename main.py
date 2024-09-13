@@ -209,6 +209,7 @@ def plot_feature_actual_vs_predicted(actual, predicted, feature_idx):
     plt.legend()
     plt.grid(True)
     plt.show()
+    plt.savefig(f"figure{feature_idx}.png")
 
 
 def main():

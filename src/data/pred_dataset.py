@@ -204,80 +204,6 @@ class Dataset_ETT_minute(Dataset):
         return self.scaler.inverse_transform(data)
 
 
-class Dataset_Nixtla(Dataset):
-    def __init__(self, root_path, input_size, horizon, val_size, freq='mo', split='train',
-                 features='M', time_col="ds", data_path='teufelberger_material_m_12.parquet',
-                 target='y', scale=True, timeenc=0,
-                 use_time_features=False
-                 ):
-        # init
-        assert split in ['train', 'test', 'val']
-        self.split = split
-
-        self.input_size = input_size
-        self.horizon = horizon
-        self.val_size = val_size
-        self.features = features
-        self.time_col = time_col
-
-        self.target = target
-        self.scale = scale
-        self.timeenc = timeenc
-        self.freq = freq
-        self.use_time_features = use_time_features
-
-        self.root_path = root_path
-        self.data_path = data_path
-        self.__read_data__()
-
-    def __read_data__(self):
-        self.scaler = StandardScaler()
-        df_raw = pl.read_parquet(os.path.join(self.root_path,
-                                          self.data_path))
-
-        if "split" in df_raw.columns:
-            df_train_val = df_raw.filter(pl.col("split").eq("train")).drop("split")
-            val_offset = pl.col(self.time_col).max().dt.offset_by(f"-{self.val_size}{self.freq}")
-
-            train_data = df_train_val.filter(pl.col(self.time_col).lt(val_offset)).pivot("unique_id", values=self.target, index=self.time_col).drop(self.time_col).to_pandas()
-            val_data = df_train_val.filter(pl.col(self.time_col).ge(val_offset)).pivot("unique_id", values=self.target, index=self.time_col).drop(self.time_col).to_pandas()
-            test_data = df_raw.filter(pl.col("split").eq("test")).drop("split").pivot("unique_id", values=self.target, index=self.time_col).drop(self.time_col).to_pandas()
-
-        else:
-            raise ValueError("Nixtla style dataset must contain 'fold' column")
-
-        if self.features == 'M' or self.features == 'MS':
-            match self.split:
-                case "train": df_data = train_data
-                case "val": df_data = val_data
-                case "test": df_data = test_data
-            df_data = df_data
-        elif self.features == 'S':
-            raise NotImplementedError("Single Time Series is not implemented.")
-
-        if self.scale:
-            self.scaler.fit(train_data.to_numpy())
-            data = self.scaler.transform(df_data.to_numpy())
-        else:
-            data = df_data.to_numpy()
-
-        self.data = data
-
-    def __getitem__(self, index):
-        x_begin = index
-        x_end = x_begin + self.input_size
-        y_begin = x_end
-        y_end = y_begin + self.pred_len
-
-        seq_x = self.data[x_begin:x_end]
-        seq_y = self.data[y_begin:y_end]
-        return _torch(seq_x, seq_y)
-
-    def __len__(self):
-        return len(self.data) - self.seq_len - self.pred_len + 1
-
-    def inverse_transform(self, data):
-        return self.scaler.inverse_transform(data)
 
 
 class Dataset_Custom(Dataset):
@@ -681,6 +607,89 @@ class Dataset_Pred(Dataset):
         return self.scaler.inverse_transform(data)
 
 
+class Dataset_Nixtla(Dataset):
+    def __init__(self, root_path, input_size, horizon, val_size, freq='mo', split='train',
+                 features='M', time_col="ds", data_path='teufelberger_material_m_12.parquet',
+                 target='y', scale=True, timeenc=0,
+                 use_time_features=False
+                 ):
+        # init
+        assert split in ['train', 'test', 'val']
+        self.split = split
+
+        self.input_size = input_size
+        self.horizon = horizon
+        self.val_size = val_size
+        self.features = features
+        self.time_col = time_col
+
+        self.target = target
+        self.scale = scale
+        self.timeenc = timeenc
+        self.freq = freq
+        self.use_time_features = use_time_features
+
+        self.root_path = root_path
+        self.data_path = data_path
+        self.__read_data__()
+
+    def __read_data__(self):
+        self.scaler = StandardScaler()
+        df_raw = pl.read_parquet(os.path.join(self.root_path,
+                                          self.data_path))
+
+        if "split" in df_raw.columns:
+            # Since predicting the validation/test set requires previous historic data of size self.input_size, this is added to the offset of validation set
+            # In the test set the input samples from the validation set are added
+            df_train_val = df_raw.filter(pl.col("split").eq("train")).drop("split")
+            train_end_date = pl.col(self.time_col).max().dt.offset_by(f"-{self.val_size}{self.freq}")
+            val_start_date = pl.col(self.time_col).max().dt.offset_by(f"-{self.val_size + self.input_size}{self.freq}")
+            test_start_date = pl.col(self.time_col).max().dt.offset_by(f"-{self.input_size}{self.freq}")
+            
+            train_data = df_train_val.filter(pl.col(self.time_col).lt(train_end_date))
+            val_data = df_train_val.filter(pl.col(self.time_col).ge(val_start_date))
+            test_data = pl.concat([df_train_val.filter(pl.col(self.time_col).gt(test_start_date)), df_raw.filter(pl.col("split").eq("test")).drop("split")])
+            train_data = self._pivot_df(train_data)
+            test_data = self._pivot_df(test_data)
+            val_data = self._pivot_df(val_data)
+        else:
+            raise ValueError("Nixtla style dataset must contain 'fold' column")
+        if self.features == 'M' or self.features == 'MS':
+            match self.split:
+                case "train": df_data = train_data
+                case "val": df_data = val_data
+                case "test": df_data = test_data
+        elif self.features == 'S':
+            raise NotImplementedError("Single Time Series is not implemented.")
+
+        if self.scale:
+            self.scaler.fit(train_data)
+            data = self.scaler.transform(df_data)
+        else:
+            data = df_data
+
+        self.data = data
+
+    def _pivot_df(self, df: pl.DataFrame):
+        pivoted_df = df.pivot("unique_id", values=self.target, index=self.time_col).drop(self.time_col)
+        return pivoted_df.select(sorted(pivoted_df.columns))
+
+    def __getitem__(self, index):
+        x_begin = index
+        x_end = x_begin + self.input_size
+        y_begin = x_end
+        y_end = y_begin + self.horizon
+
+        seq_x = self.data[x_begin:x_end]
+        seq_y = self.data[y_begin:y_end]
+        return _torch(seq_x, seq_y)
+
+    def __len__(self):
+        return len(self.data) - self.input_size - self.horizon + 1
+
+    def inverse_transform(self, data):
+        return self.scaler.inverse_transform(data)
+
 def _torch(*dfs):
     return tuple(torch.from_numpy(x).float() for x in dfs)
 
@@ -691,9 +700,10 @@ def main():
     # size = [context_points, 0, target_points]
     # dataset = Dataset_ETT_hour(root_path=root_path, size=size, features="M", use_time_features=False, scale=True)
     horizon = 12
-    input_size = 24
-    frequency = "M"
+    input_size = 12
+    frequency = "mo"
     dataset = Dataset_Nixtla(root_path=root_path, val_size=12, input_size=input_size, features="M", freq=frequency, horizon=horizon, use_time_features=False, scale=True)
+    print(dataset[0])
 
 if __name__ == '__main__':
     main()
